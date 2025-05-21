@@ -18,6 +18,86 @@ import fastai.vision.all  # For vision-related tasks
 import fastai.text.all  # For text-related tasks
 import fastai.tabular.all  # For tabular data tasks
 
+import pandas as pd
+
+class Environment:
+    def __init__(self, climate, erosion_rate, solar_power, humidity, avg_temp):
+        """
+        Parameters:
+          climate      : Name of the climate region (e.g., 'Desert', 'Temperate')
+          erosion_rate : Nominal erosion damage potential from rain and weather (0-100)
+          solar_power  : Intensity of sun damage (0-100)
+          humidity     : Relative humidity percentage (0-100)
+          avg_temp     : Average temperature in °C; deviations from a baseline boost erosion
+        """
+        self.climate = climate
+        self.erosion_rate = erosion_rate      # Represents the maximum potential of weather‐driven erosion
+        self.solar_power = solar_power        # Higher values mean more sun damage (photodegradation)
+        self.humidity = humidity              # High humidity can accelerate chemical weathering
+        self.avg_temp = avg_temp              # Temperature influences thermal expansion & contraction
+
+    def calculate_erosion_index(self):
+        """
+        Compute an erosion index as a weighted sum. We assume:
+          - Erosion rate (weather, rain) has strong influence (40%)
+          - Solar power (sun damage) contributes significantly (30%)
+          - Humidity adds further stimulation (20%)
+          - Temperature deviation from an optimal baseline (here, 15°C) contributes modestly (10%)
+        """
+        baseline_temp = 15  # An optimal temperature where thermal shock is minimal
+        temp_factor = abs(self.avg_temp - baseline_temp)
+        # The erosion index is an arbitrary composite metric intended to simulate potential erosion severity.
+        erosion_index = (0.4 * self.erosion_rate +
+                         0.3 * self.solar_power +
+                         0.2 * self.humidity +
+                         0.1 * temp_factor)
+        return erosion_index
+
+    def classify_erosion(self, erosion_index):
+        """
+        Classify erosion severity:
+          - 'Low' if the erosion index is under 30,
+          - 'Moderate' if between 30 and 60,
+          - 'High' if above 60.
+        """
+        if erosion_index < 30:
+            return 'Low'
+        elif erosion_index < 60:
+            return 'Moderate'
+        else:
+            return 'High'
+
+# Create several environment instances with various realistic parameters.
+# These parameters are meant to represent diverse climates and their inherent weathering challenges.
+env_list = [
+    Environment("Desert", erosion_rate=20, solar_power=90, humidity=10, avg_temp=40),          # Extreme sun, low humidity
+    Environment("Tropical Rainforest", erosion_rate=80, solar_power=70, humidity=90, avg_temp=30),
+    Environment("Temperate", erosion_rate=50, solar_power=50, humidity=50, avg_temp=20),
+    Environment("Arctic", erosion_rate=10, solar_power=30, humidity=60, avg_temp=-5),           # Cold, low erosion potential
+    Environment("Mediterranean", erosion_rate=40, solar_power=60, humidity=40, avg_temp=25)
+]
+
+# Compile the dataset with calculated erosion indices and computed severity levels.
+data = []
+for env in env_list:
+    ei = env.calculate_erosion_index()
+    severity = env.classify_erosion(ei)
+    data.append({
+        "Climate": env.climate,
+        "Erosion_Rate": env.erosion_rate,
+        "Solar_Power": env.solar_power,
+        "Humidity": env.humidity,
+        "Avg_Temp": env.avg_temp,
+        "Erosion_Index": round(ei, 2),
+        "Severity": severity
+    })
+
+df = pd.DataFrame(data)
+print(df)
+
+# Optionally, save the dataset into a CSV file for future reference in SlizzAi image generation.
+df.to_csv("erosion_dataset.csv", index=False)
+
 class SlizzAiImageGen:
     def __init__(self, image_path):
         self.image_path = image_path
