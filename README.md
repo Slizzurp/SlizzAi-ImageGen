@@ -1,3 +1,19 @@
+# SlizzAi ImageGen v2.0 🎨
+
+SlizzAi ImageGen v2.0 is a modular, style-aware image generation pipeline designed to evolve with each user’s creative journey. Built for artists, storytellers, and developers, this engine simulates personalized image generation using prompt narration, emotional context, and adaptive style fingerprints.
+
+## Features
+- 🧠 Prompt Narration Quality Index (PNQI) scoring
+- 🎨 StyleFingerprint module with feedback-based evolution
+- 🌌 SceneComposer for structured visual storytelling
+- ⚙️ ModelSelector for dynamic resolution and style matching
+- 📦 OutputFormatter with metadata-rich image simulation
+- 🖥️ CLI interface for easy testing and integration
+
+## Usage
+python slizzai-imagegen.v.2.py --user mirnes --prompt "Mikky under moonlight, glitch haze, neon reflections" --feedback "dark and glitchy"
+
+
 # SlizzAi ImageGen 1.0v 🚀
 
 ## **About**
