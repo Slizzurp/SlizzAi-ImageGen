@@ -5,7 +5,7 @@
 
 import random
 import json
-import datetime
+from datetime import datetime
 import argparse
 
 # -------------------------------
@@ -72,11 +72,14 @@ class PromptNarrationEngine:
         }
         return round(sum(self.attributes[k] * weights[k] for k in self.attributes), 2)
 
+from datetime import datetime
+
 # -------------------------------
 # SceneComposer Module
 # -------------------------------
 class SceneComposer:
     """Builds structured scene graph from prompt and style vector."""
+
     def __init__(self, prompt, style_vector):
         self.prompt = prompt
         self.style = style_vector
@@ -84,19 +87,42 @@ class SceneComposer:
 
     def compose_scene(self):
         """Compose scene graph with key elements and style."""
+        subject = self.extract_subject_from_prompt() or "Mikky"
+        environment = self.extract_environment_from_prompt()
+
         return {
-            "subject": "Mikky",
-            "environment": "glowing ocean",
-            "lighting": self.style["lighting"],
-            "fx": self.style["signature_elements"],
-            "color_palette": self.style["palette"],
-            "emotion": self.style["emotion"],
-            "composition": self.style["composition"],
-            "hair_color": self.style["hair_color"],
-            "timestamp": str(datetime.datetime.now()),
-            "prompt_text": self.prompt
+            "subject": subject,
+            "environment": environment,
+            "lighting": self.style.get("lighting", "ambient"),
+            "fx": self.style.get("signature_elements", []),
+            "color_palette": self.style.get("palette", "default"),
+            "composition": self.style.get("composition", "centered"),
+            "hair_color": self.style.get("hair_color", "unknown"),
+            "timestamp": str(datetime.now()),
+            "prompt_text": self.sanitize_prompt(self.prompt)
         }
 
+    def extract_environment_from_prompt(self):
+        """Extract environment from prompt text, fallback to default if not found."""
+        keywords = ["ocean", "forest", "city", "desert", "mountain", "space", "garden", "room"]
+        for word in keywords:
+            if word in self.prompt.lower():
+                return word
+        return "glowing ocean"
+
+    def sanitize_prompt(self, prompt):
+        """Sanitize prompt text by stripping whitespace and removing control characters."""
+        sanitized = prompt.strip()
+        sanitized = ''.join(ch for ch in sanitized if ch.isprintable())
+        return sanitized
+
+    def extract_subject_from_prompt(self):
+        """Simple heuristic to extract subject from prompt text."""
+        words = self.prompt.split()
+        for word in words:
+            if word.istitle():
+                return word
+        return None
 # -------------------------------
 # ModelSelector Module
 # -------------------------------
@@ -116,31 +142,50 @@ class ModelSelector:
         else:
             return {"model": "default_gen", "resolution": "512x512"}
 
+import os
+from datetime import datetime
+
+import os
+from datetime import datetime
+
 # -------------------------------
 # OutputFormatter Module
 # -------------------------------
 class OutputFormatter:
     """Formats final image output and metadata."""
+
     def __init__(self, scene_graph, model_config):
         self.scene = scene_graph
         self.config = model_config
 
     def simulate_image_generation(self):
         """Simulate image generation process and return image filename."""
-        return "generated_image_placeholder.png"
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"slizzai_{self.config['model']}_{timestamp}.png"
+        return filename
+
+    def export_to_documents(self, filename):
+        """Export image to a custom folder in Documents and return full path."""
+        documents_path = os.path.join(os.path.expanduser("~"), "Documents", "SlizzAi_Exports")
+        os.makedirs(documents_path, exist_ok=True)  # Ensure folder exists
+        full_path = os.path.join(documents_path, filename)
+        # Simulate saving the image (in real use, you'd call image.save(full_path))
+        return full_path
 
     def render(self):
         """Render final output with image and metadata."""
         image_file = self.simulate_image_generation()
+        export_path = self.export_to_documents(image_file)
+
         return {
-            "image": image_file,
+            "image": export_path,
             "metadata": {
                 "style_id": self.config["model"],
                 "resolution": self.config["resolution"],
-                "scene": self.scene
+                "scene": self.scene,
+                "export_location": "Documents/SlizzAi_Exports"
             }
         }
-
 # -------------------------------
 # Main Engine Function
 # -------------------------------
